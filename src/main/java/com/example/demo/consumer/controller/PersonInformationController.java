@@ -31,5 +31,6 @@ public class PersonInformationController {
     @PostMapping("/search/list")
     public ReturnFormat selectPersonList(PageEntity pageEntity) {
         return personInformationService.selectPersonList(pageEntity);
+
     }
 }
