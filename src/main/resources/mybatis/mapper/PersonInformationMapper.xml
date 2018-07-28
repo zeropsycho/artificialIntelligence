@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.consumer.dao.PersonInformationDao">
+
+    <resultMap id="personResultMap" type="PersonInformation">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="name" property="name"/>
+        <result column="sex" property="sex"/>
+        <result column="birthday" property="birthday"/>
+        <result column="create" property="create"/>
+        <result column="update" property="update"/>
+    </resultMap>
+
+    <!--封装查询类映射-->
+
+    <sql id="Base_Person">
+        `user_id`, `name`, `sex`, `birthday`, `create`, `update`
+    </sql>
+
+    <!--录入数据到u_person_information表-->
+    <insert id="saveUserFinl" parameterType="PersonInformation">
+        insert into u_user(
+        <if test="userId != null">
+            user_id,
+        </if>
+        <if test="name != null">
+            `name`,
+        </if>
+        <if test="sex != null">
+            sex,
+        </if>
+        <if test="birthday != null">
+            birthday,
+        </if>
+        `create`,
+        `update`
+        )
+        values(
+        <foreach collection="list" item="personItem" index="index" separator=",">
+            (
+            <if test="userId != null">
+                #{personItem.userId},
+            </if>
+            <if test="name != null">
+                #{personItem.name},
+            </if>
+            <if test="sex != null">
+                #{personItem.sex},
+            </if>
+            <if test="birthday != null">
+                #{personItem.birthday},
+            </if>
+            now(),
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <!--查询u_user表数据 分页查询-->
+    <select id="selectPersonList" resultMap="personResultMap" parameterType="com.example.demo.consumer.entity.PageEntity">
+        SELECT <include refid="Base_Person" />
+        FROM u_person_information
+        <where>
+            <if test="name != null">
+                `name` LIKE '%'#{name}'%'
+            </if>
+        </where>
+    </select>
+</mapper>
