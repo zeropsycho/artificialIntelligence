@@ -1,5 +1,7 @@
 package com.example.demo.consumer.entity;
 
+import java.util.Date;
+
 /**
  * @author Administrator
  * @version V1.0
@@ -13,8 +15,17 @@ public class User {
     private Long id;
     private String userName;
     private String passWord;
+    private Date birthday;
 
     public User() {
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
     }
 
     public Long getId() {

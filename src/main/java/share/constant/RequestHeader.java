@@ -14,10 +14,17 @@ public class RequestHeader {
 
     public static final String REQUEST_PATH_PERSON = "person";
 
+    public static final String REQUEST_PATH_EXCEL = "excel";
+
     /**
      * 请求完整路径头
      */
     public static final String REQUEST_HEADER_USER = REQUEST_HEADER_SLASH + REQUEST_PATH_USER;
 
     public static final String REQUEST_HEADER_PERSON = REQUEST_HEADER_SLASH + REQUEST_PATH_PERSON;
+
+    /**
+     * 表格请求
+     */
+    public static final String REQUEST_HEADER_EXCEL = REQUEST_HEADER_SLASH + REQUEST_PATH_EXCEL;
 }
