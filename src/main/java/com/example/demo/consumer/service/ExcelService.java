@@ -11,5 +11,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface ExcelService {
 
-    void excelImport(HttpServletResponse response);
+    /**
+     * 表格导出实例
+     * @param response
+     */
+    void excelExport(HttpServletResponse response);
 }

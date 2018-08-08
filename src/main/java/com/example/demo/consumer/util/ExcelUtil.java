@@ -18,6 +18,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import share.constant.ExcelConstant;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
@@ -36,15 +37,16 @@ public class ExcelUtil {
 
     /**
      * SSHF表格转换
-     * @param title 标题
-     * @param map 列头数据
-     * @param jsonArray 表数据
-     * @param dateParam 默认时间
-     * @param colWidth 列宽
+     *
+     * @param title        标题
+     * @param map          列头数据
+     * @param jsonArray    表数据
+     * @param dateParam    默认时间
+     * @param colWidth     列宽
      * @param outputStream 输出流
      */
-    public void exportExcel(String title, Map<String, String> map, JSONArray jsonArray,
-                            String dateParam, int colWidth, OutputStream outputStream) {
+    public static void exportExcel(String title, Map<String, String> map, JSONArray jsonArray,
+                                   String dateParam, int colWidth, OutputStream outputStream) {
 
         if (null == dateParam) {
             dateParam = ExcelConstant.DATEFORMAT;
@@ -52,7 +54,7 @@ public class ExcelUtil {
         // 创建一个工作簿
         HSSFWorkbook hssfWorkbook = new HSSFWorkbook();
         hssfWorkbook.createInformationProperties();
-        hssfWorkbook.getDocumentSummaryInformation().setCompany("名称头");
+        hssfWorkbook.getDocumentSummaryInformation().setCompany("ZERO-Company");
         // 创建表格属性
         SummaryInformation summaryInformation = hssfWorkbook.getSummaryInformation();
         summaryInformation.setAuthor("ZERO");
@@ -67,29 +69,34 @@ public class ExcelUtil {
         titleStyle.setAlignment(HSSFCellStyle.ALIGN_CENTER);
         // 字体
         HSSFFont titleFont = hssfWorkbook.createFont();
+        // 字体大小
         titleFont.setFontHeightInPoints((short) 20);
         titleFont.setBoldweight((short) 700);
         titleStyle.setFont(titleFont);
         // 创建列头样式
         HSSFCellStyle headerStyle = hssfWorkbook.createCellStyle();
-        headerStyle.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
         headerStyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
         headerStyle.setBorderRight(HSSFCellStyle.BORDER_THIN);
         headerStyle.setBorderTop(HSSFCellStyle.BORDER_THIN);
+        headerStyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
+        headerStyle.setWrapText(true);
+        // 居中
         headerStyle.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+
         // 创建列头字体
         HSSFFont headerFont = hssfWorkbook.createFont();
-        headerFont.setFontHeightInPoints((short) 12);
+        headerFont.setFontHeightInPoints((short) 13);
         headerFont.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
         headerStyle.setFont(headerFont);
         // 创建单元格
         HSSFCellStyle cellStyle = hssfWorkbook.createCellStyle();
-        cellStyle.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
         cellStyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
         cellStyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);
         cellStyle.setBorderRight(HSSFCellStyle.BORDER_THIN);
         cellStyle.setBorderTop(HSSFCellStyle.BORDER_THIN);
+        // 居中
         cellStyle.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+        // 垂直居中
         cellStyle.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
         // 单元格字体样式
         HSSFFont cellFont = hssfWorkbook.createFont();
@@ -112,32 +119,33 @@ public class ExcelUtil {
         // 产生表格标题行， 以及设置列宽
         String[] properties = new String[map.size()];
         String[] headers = new String[map.size()];
-        int rowIndex = 0;
-        for (Iterator<String> iter = map.keySet().iterator(); iter.hasNext();) {
+        int k = 0;
+        for (Iterator<String> iter = map.keySet().iterator(); iter.hasNext(); ) {
             String fileName = iter.next();
 
-            properties[rowIndex] = fileName;
-            headers[rowIndex] = fileName;
+            properties[k] = fileName;
+            headers[k] = fileName;
 
             int bytes = fileName.getBytes().length;
-            arrColWidth[rowIndex] = bytes < minBytes ? minBytes : bytes;
+            arrColWidth[k] = bytes < minBytes ? minBytes : bytes;
             // 精确控制列宽
-            sheet.setColumnWidth(rowIndex, (int) (arrColWidth[rowIndex] + 0.72) * 256);
-            rowIndex ++;
+            sheet.setColumnWidth(k, ((int) (arrColWidth[k] + 0.72)) * 256);
+            k++;
         }
         // 遍历集合数据， 产生数据行
         int rowIndexs = 0;
         for (Object object : jsonArray) {
             // 设置每页条数
-            if (rowIndex == ExcelConstant.PAGENUMBER || rowIndex == 0) {
-                if (rowIndex != 0) {
+            if (rowIndexs == ExcelConstant.PAGENUMBER || rowIndexs == 0) {
+                if (rowIndexs != 0) {
                     // 如果数据超过了， 则在第二页显示
                     sheet = hssfWorkbook.createSheet();
                 }
                 //表头 从1开始
-                HSSFRow titleRow = sheet.createRow(1);
+                HSSFRow titleRow = sheet.createRow(0);
                 titleRow.createCell(0).setCellValue(title);
                 titleRow.getCell(0).setCellStyle(titleStyle);
+                // 合并单元格
                 sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, map.size() - 1));
 
                 // 列头 rowIndex = 1
@@ -145,16 +153,19 @@ public class ExcelUtil {
                 for (int i = 0; i < headers.length; i++) {
                     headerRow.createCell(i).setCellValue(headers[i]);
                     headerRow.getCell(i).setCellStyle(headerStyle);
+                    headerRow.setHeight((short) 350);
                 }
-
                 // 数据内容从 rowIndex = 2开始
-                rowIndex = 2;
+                rowIndexs = 2;
             }
-            JSONObject jo = (JSONObject) JSONObject.toJSON(jsonArray);
-            HSSFRow dataRow = sheet.createRow(rowIndex);
+            JSONObject jo = (JSONObject) JSONObject.toJSON(object);
+            HSSFRow dataRow = sheet.createRow(rowIndexs);
             for (int i = 0; i < properties.length; i++) {
-                HSSFCell newCell = dataRow.createCell(i);
+                HSSFCellStyle hssfCellStyle = hssfWorkbook.createCellStyle();
+                hssfCellStyle.setWrapText(true);
 
+                HSSFCell newCell = dataRow.createCell(i);
+                newCell.setCellStyle(hssfCellStyle);
                 Object o = jo.get(properties[i]);
                 String cellValue = "";
                 if (o == null) {
@@ -164,21 +175,25 @@ public class ExcelUtil {
                 } else {
                     cellValue = o.toString();
                 }
-                newCell.setCellValue(cellValue);
                 newCell.setCellStyle(cellStyle);
+                newCell.setCellValue(cellValue);
             }
-            rowIndex++;
+            rowIndexs++;
         }
         try {
             hssfWorkbook.write(outputStream);
             summaryInformation.write(outputStream);
-             hssfWorkbook.close();
+            hssfWorkbook.close();
             outputStream.close();
-        } catch (IOException e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (WritingNotSupportedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
+
+
 }
